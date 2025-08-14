@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quotation Generator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styles for print, using @media print for specific overrides */
+        @media print {
+            body {
+                margin: 20px;
+                color: #333;
+                -webkit-print-color-adjust: exact; /* For better background/color printing */
+                print-color-adjust: exact;
+            }
+            #app-container {
+                display: none !important; /* Hide the main app UI when printing */
+            }
+            #quotation-print-area {
+                display: block !important; /* Show the print-specific content */
+            }
+            .print-section {
+                border: 1px solid #ccc;
+                padding: 20px;
+                margin-bottom: 20px;
+                border-radius: 8px;
+            }
+            .company-info, .client-info {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 20px;
+            }
+            /* Removing specific padding from company-details and header-details in print media query for better alignment */
+            .company-details, .header-details {
+                padding: 0 !important; /* Override default padding for precise alignment */
+            }
+            .company-details img {
+                max-width: 150px;
+                height: auto;
+                margin-bottom: 10px;
+                margin-top: 0 !important; /* Ensure image aligns at the very top */
+            }
+            .company-details h2 {
+                margin-top: 0 !important; /* Ensure company name aligns at the very top */
+            }
+            .header-details {
+                text-align: right;
+            }
+            .header-details h1 {
+                margin-top: 0 !important; /* Ensure QUOTATION title aligns at top */
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .table-header th {
+                background-color: #f3f4f6;
+                padding: 8px;
+                text-align: left;
+                border-bottom: 1px solid #e5e7eb;
+            }
+            .table-body td {
+                padding: 8px;
+                border-bottom: 1px solid #e5e7eb;
+            }
+            .totals-table {
+                width: 100%;
+                max-width: 300px;
+                margin-left: auto;
+                margin-top: 20px;
+            }
+            .totals-table td {
+                padding: 5px 0;
+            }
+            h1, h2, h3 {
+                color: #1a202c;
+            }
+            /* Specific print style for company name color */
+            .company-name-print-color {
+                color: #60a5fa; /* Tailwind blue-400 equivalent */
+            }
+            /* Styles for bolding subtotal and tax, and light blue for total in print */
+            .print-font-bold {
+                font-weight: 700;
+            }
+            .print-text-blue-400 {
+                color: #60a5fa;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-500 to-purple-600 min-h-screen p-4 flex items-start justify-center">
+
+    <div id="app-container" class="bg-white rounded-xl shadow-2xl p-6 md:p-8 w-full max-w-6xl transform transition-all duration-300 hover:scale-[1.005] border border-gray-200 overflow-hidden">
+        <div class="text-center mb-8 border-b pb-4">
+            <h1 class="text-4xl font-extrabold text-blue-700">QUOTATION GENERATOR</h1>
+            <p class="text-gray-500 text-sm mt-2 italic">Working Offline (Data saved in your browser)</p>
+        </div>
+
+        <!-- Company & Client Details Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Company Details -->
+            <div class="bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-200">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Your Company Details</h2>
+                <label for="company-logo-upload" class="cursor-pointer mb-4 block">
+                    <img id="company-logo-preview" src="https://i.postimg.cc/rFFJygQw/1.png" alt="Company Logo" class="w-28 h-auto rounded-lg shadow-md mb-2 object-contain">
+                    <input id="company-logo-upload" type="file" accept="image/*" class="hidden">
+                    <span class="text-sm text-blue-600 hover:underline">Upload Company Logo</span>
+                </label>
+
+                <input type="text" id="company-name" placeholder="Company Name" class="w-full p-3 mb-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 text-blue-400 font-bold">
+                <input type="text" id="company-address" placeholder="Company Address" class="w-full p-3 mb-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 text-gray-800">
+                <input type="email" id="company-email" placeholder="Company Email" class="w-full p-3 mb-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 text-gray-800">
+                <input type="tel" id="company-phone" placeholder="Company Phone" class="w-full p-3 mb-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 text-gray-800">
+            </div>
+
+            <!-- Client Details -->
+            <div class="bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-200">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Client Details (Bill To)</h2>
+                <input type="text" id="client-name" placeholder="Client Name" class="w-full p-3 mb-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 text-gray-800">
+                <input type="text" id="client-address" placeholder="Client Address" class="w-full p-3 mb-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 text-gray-800">
+                <input type="email" id="client-email" placeholder="Client Email" class="w-full p-3 mb-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 text-gray-800">
+                <input type="tel" id="client-phone" placeholder="Client Phone" class="w-full p-3 mb-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 text-gray-800">
+            </div>
+        </div>
+
+        <!-- Quotation Info -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-200">
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Quotation Number</label>
+                <input type="text" id="quotation-number" class="w-full p-3 mb-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 text-gray-800">
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Quotation Date</label>
+                <input type="date" id="quotation-date" class="w-full p-3 mb-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 text-gray-800">
+            </div>
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Valid Until</label>
+                <input type="date" id="valid-until-date" class="w-full p-3 mb-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 text-gray-800">
+            </div>
+        </div>
+
+        <!-- Line Items Section -->
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Line Items</h2>
+            <div class="overflow-x-auto rounded-lg shadow-sm border border-gray-200">
+                <table class="min-w-full bg-white">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-700 uppercase text-sm leading-normal">
+                            <th class="py-3 px-6 text-left">Description</th>
+                            <th class="py-3 px-6 text-center">Quantity</th>
+                            <th class="py-3 px-6 text-right">Unit Price</th>
+                            <th class="py-3 px-6 text-right">Amount</th>
+                            <th class="py-3 px-6 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="line-items-body" class="text-gray-600 text-sm font-light">
+                        <!-- Line items will be dynamically inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            <button id="add-line-item-btn" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200 ease-in-out shadow-md">
+                Add Line Item
+            </button>
+        </div>
+
+        <!-- Totals Section -->
+        <div class="flex justify-end mb-8">
+            <div class="w-full md:w-1/3 bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-200">
+                <div class="flex justify-between mb-2">
+                    <span class="text-gray-700 font-medium">Subtotal:</span>
+                    <span id="subtotal" class="text-gray-800 font-bold">KSh0.00</span>
+                </div>
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-gray-700 font-medium">Tax Rate (%):</label>
+                    <input type="number" id="tax-rate" min="0" max="100" class="w-20 p-2 border rounded-md text-right focus:ring-blue-500 focus:border-blue-500">
+                    <span id="tax-amount" class="text-gray-800 font-bold">KSh0.00</span>
+                </div>
+                <div class="flex justify-between items-center border-t-2 border-gray-300 pt-4 mt-4">
+                    <span class="text-gray-800 text-xl font-bold">Total:</span>
+                    <span id="total" class="text-blue-700 text-2xl font-extrabold">KSh0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap justify-center gap-4">
+            <button id="save-quotation-btn" class="flex items-center px-6 py-3 bg-green-500 text-white font-bold rounded-full shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-opacity-75 hover:bg-green-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                Save Quotation
+            </button>
+            <button id="print-quotation-btn" class="flex items-center px-6 py-3 bg-yellow-500 text-white font-bold rounded-full shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-opacity-75 hover:bg-yellow-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm-5 0h2m2-4a2 2 100-4h-4a2 2 100 4h4z" />
+                </svg>
+                Print Quotation
+            </button>
+            <button id="undo-btn" class="flex items-center px-5 py-2 bg-gray-200 text-gray-800 font-semibold rounded-full shadow transition duration-200 ease-in-out hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.998 4.41L7.705 8.707a1 1 0 001.414 1.414L11 8.586V19a1 1 0 002 0V8.586l1.881 1.881a1 1 0 001.414-1.414L11.998 4.41z" />
+                </svg>
+                Undo
+            </button>
+            <button id="redo-btn" class="flex items-center px-5 py-2 bg-gray-200 text-gray-800 font-semibold rounded-full shadow transition duration-200 ease-in-out hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.998 19.59L16.291 15.3a1 1 0 00-1.414-1.414L13 15.414V5a1 1 0 00-2 0v10.414l-1.881-1.881a1 1 0 00-1.414 1.414L11.998 19.59z" />
+                </svg>
+                Redo
+            </button>
+            <button id="view-saved-btn" class="flex items-center px-6 py-3 bg-purple-600 text-white font-bold rounded-full shadow-lg transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-opacity-75 hover:bg-purple-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v10m0 0l-3-3m3 3l3-3M4 13h16" />
+                </svg>
+                View Saved
+            </button>
+        </div>
+    </div>
+
+    <!-- Saved Quotations Modal -->
+    <div id="saved-quotations-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md md:max-w-lg lg:max-w-xl max-h-[80vh] overflow-y-auto transform scale-95 transition-transform duration-200">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">Your Saved Quotations</h2>
+            <ul id="saved-quotations-list" class="space-y-3">
+                <!-- Saved quotations will be dynamically inserted here -->
+            </ul>
+            <button id="close-modal-btn" class="mt-6 w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition duration-200 ease-in-out shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-75">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <!-- Hidden div for print content - This is cloned for printing -->
+    <div id="quotation-print-area" class="hidden">
+        <!-- Content for printing will be dynamically injected here via JS -->
+    </div>
+
+    <script type="text/javascript">
+        // --- Database Logic ---
+
+        /**
+         * Loads all saved quotations from the browser's local storage.
+         * @returns {Array<Object>} An array of quotation objects. Returns an empty array if no data is found or if there's an error.
+         */
+        const loadQuotations = () => {
+            try {
+                const storedQuotations = localStorage.getItem('quotations');
+                return storedQuotations ? JSON.parse(storedQuotations) : [];
+            } catch (error) {
+                console.error("Error loading quotations from localStorage:", error);
+                return [];
+            }
+        };
+
+        /**
+         * Saves a given array of quotations to the browser's local storage.
+         * @param {Array<Object>} quotations - An array of quotation objects to be saved.
+         */
+        const saveQuotations = (quotations) => {
+            try {
+                localStorage.setItem('quotations', JSON.stringify(quotations));
+            } catch (error) {
+                console.error("Error saving quotations to localStorage:", error);
+            }
+        };
+
+        /**
+         * Adds a new quotation or updates an existing one in local storage.
+         * @param {Object} quotationData - The quotation object to add or update. Must have a unique 'id' property.
+         * @returns {Array<Object>} The updated array of all saved quotations.
+         */
+        const addOrUpdateQuotation = (quotationData) => {
+            let currentSavedQuotations = loadQuotations();
+            const existingIndex = currentSavedQuotations.findIndex(q => q.id === quotationData.id);
+
+            if (existingIndex > -1) {
+                currentSavedQuotations[existingIndex] = quotationData;
+            } else {
+                currentSavedQuotations.push(quotationData);
+            }
+
+            saveQuotations(currentSavedQuotations);
+            return currentSavedQuotations;
+        };
+
+        /**
+         * Deletes a quotation from local storage by its ID.
+         * @param {string} idToDelete - The unique ID of the quotation to delete.
+         * @returns {Array<Object>} The updated array of all saved quotations.
+         */
+        const deleteQuotation = (idToDelete) => {
+            let currentSavedQuotations = loadQuotations();
+            const newSavedQuotations = currentSavedQuotations.filter(q => q.id !== idToDelete);
+            saveQuotations(newSavedQuotations);
+            return newSavedQuotations;
+        };
+
+
+        // --- Global State Object ---
+        let appState = {
+            companyName: "Electrawave Innovations", // Updated
+            companyAddress: "Ruiru, Nairobi, Kenya", // Updated
+            companyEmail: "info@electrawaveinnovations.com", // Updated
+            companyPhone: "+254 718 900257", // Updated
+            companyLogoUrl: "https://i.postimg.cc/rFFJygQw/1.png", // Default logo URL
+            clientName: "",
+            clientAddress: "",
+            clientEmail: "",
+            clientPhone: "",
+            quotationNumber: `Q-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+            quotationDate: new Date().toISOString().split('T')[0],
+            validUntilDate: new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0],
+            lineItems: [{ id: Date.now(), description: '', quantity: 1, unitPrice: 0.00 }], // Use Date.now() for unique IDs
+            taxRate: 8,
+            quotationHistory: [], // Stores snapshots of appState for undo/redo
+            historyIndex: -1,    // Current position in history
+            savedQuotations: []  // Stores quotations loaded from local storage
+        };
+
+        // --- DOM Elements ---
+        const els = {};
+        const getEl = (id) => {
+            if (!els[id]) {
+                els[id] = document.getElementById(id);
+            }
+            return els[id];
+        };
+
+        // --- History Management (Undo/Redo) ---
+        const captureState = () => {
+            const currentState = { ...appState }; // Create a shallow copy
+            currentState.lineItems = JSON.parse(JSON.stringify(appState.lineItems)); // Deep copy lineItems
+            
+            // Truncate history if we're not at the end (e.g., after an undo and then a new change)
+            appState.quotationHistory = appState.quotationHistory.slice(0, appState.historyIndex + 1);
+            appState.quotationHistory.push(currentState);
+            appState.historyIndex++;
+            updateUndoRedoButtons();
+        };
+
+        const applyState = (state) => {
+            // Apply the state to appState
+            appState.companyName = state.companyName;
+            appState.companyAddress = state.companyAddress;
+            appState.companyEmail = state.companyEmail;
+            appState.companyPhone = state.companyPhone;
+            appState.companyLogoUrl = state.companyLogoUrl;
+            appState.clientName = state.clientName;
+            appState.clientAddress = state.clientAddress;
+            appState.clientEmail = state.clientEmail;
+            appState.clientPhone = state.clientPhone;
+            appState.quotationNumber = state.quotationNumber;
+            appState.quotationDate = state.quotationDate;
+            appState.validUntilDate = state.validUntilDate;
+            appState.lineItems = JSON.parse(JSON.stringify(state.lineItems)); // Deep copy
+            appState.taxRate = state.taxRate;
+
+            renderApp(); // Re-render the entire app to reflect the applied state
+            updateUndoRedoButtons();
+        };
+
+        const handleUndo = () => {
+            if (appState.historyIndex > 0) {
+                appState.historyIndex--;
+                applyState(appState.quotationHistory[appState.historyIndex]);
+            }
+        };
+
+        const handleRedo = () => {
+            if (appState.historyIndex < appState.quotationHistory.length - 1) {
+                appState.historyIndex++;
+                applyState(appState.quotationHistory[appState.historyIndex]);
+            }
+        };
+
+        const updateUndoRedoButtons = () => {
+            getEl('undo-btn').disabled = appState.historyIndex <= 0;
+            getEl('redo-btn').disabled = appState.historyIndex >= appState.quotationHistory.length - 1;
+        };
+
+        // --- UI Rendering ---
+        const renderApp = () => {
+            // Update company and client info fields
+            getEl('company-name').value = appState.companyName;
+            getEl('company-address').value = appState.companyAddress;
+            getEl('company-email').value = appState.companyEmail;
+            getEl('company-phone').value = appState.companyPhone;
+            getEl('company-logo-preview').src = appState.companyLogoUrl;
+
+            getEl('client-name').value = appState.clientName;
+            getEl('client-address').value = appState.clientAddress;
+            getEl('client-email').value = appState.clientEmail;
+            getEl('client-phone').value = appState.clientPhone;
+
+            // Update quotation info fields
+            getEl('quotation-number').value = appState.quotationNumber;
+            getEl('quotation-date').value = appState.quotationDate;
+            getEl('valid-until-date').value = appState.validUntilDate;
+
+            // Render Line Items
+            const lineItemsBody = getEl('line-items-body');
+            lineItemsBody.innerHTML = ''; // Clear existing items
+            appState.lineItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = "border-b border-gray-200 hover:bg-gray-50";
+                row.innerHTML = `
+                    <td class="py-3 px-6 text-left">
+                        <input type="text" value="${item.description}" placeholder="Item description"
+                            data-id="${item.id}" data-field="description"
+                            class="w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500">
+                    </td>
+                    <td class="py-3 px-6 text-center">
+                        <input type="number" value="${item.quantity}" min="0"
+                            data-id="${item.id}" data-field="quantity"
+                            class="w-20 p-2 border rounded-md text-center focus:ring-blue-500 focus:border-blue-500">
+                    </td>
+                    <td class="py-3 px-6 text-right">
+                        <input type="number" value="${item.unitPrice.toFixed(2)}" step="0.01" min="0"
+                            data-id="${item.id}" data-field="unitPrice"
+                            class="w-28 p-2 border rounded-md text-right focus:ring-blue-500 focus:border-blue-500">
+                    </td>
+                    <td class="py-3 px-6 text-right font-semibold text-gray-800">
+                        KSh${(item.quantity * item.unitPrice).toFixed(2)}
+                    </td>
+                    <td class="py-3 px-6 text-center">
+                        <button class="remove-item-btn text-red-500 hover:text-red-700 transition duration-150 ease-in-out" data-id="${item.id}" title="Remove Item">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </td>
+                `;
+                lineItemsBody.appendChild(row);
+            });
+
+            // Attach event listeners to newly rendered line item inputs and buttons
+            lineItemsBody.querySelectorAll('input').forEach(input => {
+                input.onchange = (e) => handleLineItemChange(parseInt(e.target.dataset.id), e.target.dataset.field, e.target.value);
+            });
+            lineItemsBody.querySelectorAll('.remove-item-btn').forEach(button => {
+                button.onclick = (e) => removeLineItem(parseInt(e.currentTarget.dataset.id));
+            });
+
+            // Update Totals
+            getEl('tax-rate').value = appState.taxRate;
+            getEl('subtotal').textContent = `KSh${calculateSubtotal().toFixed(2)}`;
+            getEl('tax-amount').textContent = `KSh${calculateTaxAmount().toFixed(2)}`;
+            getEl('total').textContent = `KSh${calculateTotal().toFixed(2)}`;
+
+            updateUndoRedoButtons();
+        };
+
+        // --- Calculation Logic ---
+        const calculateSubtotal = () => {
+            return appState.lineItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+        };
+
+        const calculateTaxAmount = () => {
+            return calculateSubtotal() * (appState.taxRate / 100);
+        };
+
+        const calculateTotal = () => {
+            return calculateSubtotal() + calculateTaxAmount();
+        };
+
+        // --- Event Handlers ---
+        const updateField = (field, value) => {
+            appState[field] = value;
+            captureState();
+            renderApp();
+        };
+
+        const handleLineItemChange = (id, field, value) => {
+            appState.lineItems = appState.lineItems.map(item =>
+                item.id === id ? { ...item, [field]: (field === 'quantity' || field === 'unitPrice') ? parseFloat(value) || 0 : value } : item
+            );
+            captureState();
+            renderApp();
+        };
+
+        const addLineItem = () => {
+            appState.lineItems.push({ id: Date.now(), description: '', quantity: 1, unitPrice: 0.00 });
+            captureState();
+            renderApp();
+        };
+
+        const removeLineItem = (id) => {
+            appState.lineItems = appState.lineItems.filter(item => item.id !== id);
+            captureState();
+            renderApp();
+        };
+
+        const handleLogoUpload = (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    appState.companyLogoUrl = reader.result;
+                    captureState();
+                    renderApp();
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        const handleSaveQuotation = () => {
+            if (!appState.clientName || appState.lineItems.length === 0 || calculateTotal() === 0) {
+                alert("Please fill in client name and add at least one line item with a price before saving.");
+                return;
+            }
+
+            const quotationData = {
+                id: appState.quotationNumber, // Use quotationNumber as a unique ID
+                companyName: appState.companyName,
+                companyAddress: appState.companyAddress,
+                companyEmail: appState.companyEmail,
+                companyPhone: appState.companyPhone,
+                companyLogoUrl: appState.companyLogoUrl,
+                clientName: appState.clientName,
+                clientAddress: appState.clientAddress,
+                clientEmail: appState.clientEmail,
+                clientPhone: appState.clientPhone,
+                quotationNumber: appState.quotationNumber,
+                quotationDate: appState.quotationDate,
+                validUntilDate: appState.validUntilDate,
+                lineItems: JSON.parse(JSON.stringify(appState.lineItems)), // Deep copy
+                taxRate: appState.taxRate,
+                subtotal: calculateSubtotal(),
+                taxAmount: calculateTaxAmount(),
+                total: calculateTotal(),
+                timestamp: new Date().toISOString(),
+            };
+
+            appState.savedQuotations = addOrUpdateQuotation(quotationData); // Use embedded DB function
+            alert("Quotation saved successfully to local storage!");
+            renderSavedQuotationsModal(); // Re-render modal if open
+        };
+
+        const handleDeleteSavedQuotation = (idToDelete) => {
+            // Using a custom modal-like confirmation instead of window.confirm
+            const confirmationMessage = "Are you sure you want to delete this quotation?";
+            const confirmDelete = createCustomConfirm(confirmationMessage,
+                () => { // On confirm
+                    appState.savedQuotations = deleteQuotation(idToDelete); // Use embedded DB function
+                    renderSavedQuotationsModal(); // Re-render modal if open
+                    alert("Quotation deleted successfully from local storage!");
+                },
+                () => { // On cancel
+                    // Do nothing
+                }
+            );
+        };
+
+        const handleLoadSavedQuotation = (quotation) => {
+            // Apply the loaded quotation data to the appState
+            appState.companyName = quotation.companyName;
+            appState.companyAddress = quotation.companyAddress;
+            appState.companyEmail = quotation.companyEmail;
+            appState.companyPhone = quotation.companyPhone;
+            appState.companyLogoUrl = quotation.companyLogoUrl;
+            appState.clientName = quotation.clientName;
+            appState.clientAddress = quotation.clientAddress;
+            appState.clientEmail = quotation.clientEmail;
+            appState.clientPhone = quotation.clientPhone;
+            appState.quotationNumber = quotation.quotationNumber;
+            appState.quotationDate = quotation.quotationDate;
+            appState.validUntilDate = quotation.validUntilDate;
+            appState.lineItems = JSON.parse(JSON.stringify(quotation.lineItems)); // Ensure deep copy for line items
+            appState.taxRate = quotation.taxRate;
+
+            // Clear and re-initialize history for the loaded state
+            appState.quotationHistory = [];
+            appState.historyIndex = -1;
+            captureState(); // Capture the loaded state as the new initial state for undo/redo
+
+            renderApp(); // Re-render the main app with loaded data
+            toggleModal(false); // Close the modal
+        };
+
+        const handlePrintQuotation = () => {
+            // Build the content dynamically for printing
+            let printContentHtml = `
+                <div class="print-section p-6">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="company-details flex flex-col items-start p-0">
+                            ${appState.companyLogoUrl && appState.companyLogoUrl !== "https://placehold.co/120x60/ADD8E6/000000?text=Logo" ? `<img src="${appState.companyLogoUrl}" alt="Company Logo" class="mb-2 w-32 mt-0">` : ''}
+                            <h2 class="text-2xl font-bold text-blue-400 company-name-print-color mt-0">${appState.companyName}</h2>
+                            <p class="text-gray-600">${appState.companyAddress}</p>
+                            <p class="text-gray-600">${appState.companyEmail}</p>
+                            <p class="text-gray-600">${appState.companyPhone}</p>
+                            <p class="text-blue-600"><a href="http://www.electrawaveinnovations.com" target="_blank">www.electrawaveinnovations.com</a></p>
+                        </div>
+                        <div class="header-details text-right p-0">
+                            <h1 class="text-3xl font-extrabold text-blue-700 mb-2 mt-0">QUOTATION</h1>
+                            <p class="text-gray-700"><strong>Quotation #:</strong> ${appState.quotationNumber}</p>
+                            <p class="text-gray-700"><strong>Date:</strong> ${appState.quotationDate}</p>
+                            <p class="text-gray-700"><strong>Valid Until:</strong> ${appState.validUntilDate}</p>
+                        </div>
+                    </div>
+
+                    <div class="client-info mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">BILL TO:</h3>
+                        <p class="font-medium text-gray-700">${appState.clientName}</p>
+                        <p class="text-gray-600">${appState.clientAddress}</p>
+                        <p class="text-gray-600">${appState.clientEmail}</p>
+                        <p class="text-gray-600">${appState.clientPhone}</p>
+                    </div>
+
+                    <div class="mb-8">
+                        <table class="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden">
+                            <thead>
+                                <tr class="table-header bg-gray-100">
+                                    <th class="py-2 px-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Description</th>
+                                    <th class="py-2 px-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Quantity</th>
+                                    <th class="py-2 px-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Unit Price</th>
+                                    <th class="py-2 px-4 text-left text-sm font-medium text-gray-700 uppercase tracking-wider">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${appState.lineItems.map(item => `
+                                    <tr class="table-body">
+                                        <td class="py-2 px-4 text-gray-800">${item.description}</td>
+                                        <td class="py-2 px-4 text-gray-800">${item.quantity}</td>
+                                        <td class="py-2 px-4 text-gray-800">KSh${(item.unitPrice).toFixed(2)}</td>
+                                        <td class="py-2 px-4 text-gray-800">KSh${(item.quantity * item.unitPrice).toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex justify-end mt-8">
+                        <table class="totals-table w-full max-w-xs text-gray-800">
+                            <tbody>
+                                <tr>
+                                    <td class="font-semibold py-1">Subtotal:</td>
+                                    <td class="text-right py-1 print-font-bold">KSh${calculateSubtotal().toFixed(2)}</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-semibold py-1">Tax (${appState.taxRate}%):</td>
+                                    <td class="text-right py-1 print-font-bold">KSh${calculateTaxAmount().toFixed(2)}</td>
+                                </tr>
+                                <tr class="text-xl font-bold border-t-2 border-gray-400">
+                                    <td class="py-2">Total:</td>
+                                    <td class="text-right py-2 print-text-blue-400">KSh${calculateTotal().toFixed(2)}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Payment Details -->
+                    <div class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Payment Details:</h3>
+                        <p class="text-gray-700"><strong>Pay bill:</strong> 516600</p>
+                        <p class="text-gray-700"><strong>Account:</strong> 0255831002 (DTB Bank)</p>
+                    </div>
+
+                    <!-- Terms and Conditions -->
+                    <div class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">Terms and Conditions:</h3>
+                        <p class="text-gray-700">100% payment required before supply.</p>
+                    </div>
+
+                </div>
+            `;
+
+            const printWindow = window.open('', '', 'height=800,width=1000');
+            
+            printWindow.document.write('<html><head><title>Quotation</title>');
+            printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">');
+            printWindow.document.write('<style>');
+            // Embedding the specific print styles directly here for reliable application
+            printWindow.document.write(`
+                @media print {
+                    body { font-family: "Inter", sans-serif; margin: 20px; color: #333; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    .print-section { border: 1px solid #ccc; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+                    .company-info, .client-info { display: flex; justify-content: space-between; margin-bottom: 20px; }
+                    .company-details, .header-details { padding: 0 !important; }
+                    .company-details img { max-width: 150px; height: auto; margin-bottom: 10px; margin-top: 0 !important; }
+                    .company-details h2 { margin-top: 0 !important; }
+                    .header-details { text-align: right; }
+                    .header-details h1 { margin-top: 0 !important; }
+                    table { width: 100%; border-collapse: collapse; }
+                    .table-header th { background-color: #f3f4f6; padding: 8px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+                    .table-body td { padding: 8px; border-bottom: 1px solid #e5e7eb; }
+                    .totals-table { width: 100%; max-width: 300px; margin-left: auto; margin-top: 20px; }
+                    .totals-table td { padding: 5px 0; }
+                    .print-font-bold { font-weight: 700; }
+                    .print-text-blue-400 { color: #60a5fa; }
+                    h1, h2, h3 { color: #1a202c; }
+                    .company-name-print-color { color: #60a5fa; }
+                }
+            `);
+            printWindow.document.write('</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write(printContentHtml); // Directly write the constructed HTML
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.print();
+        };
+
+        // --- Custom Alert/Confirm Functions (to replace browser's alert/confirm) ---
+        const createCustomAlert = (message) => {
+            const modal = document.createElement('div');
+            modal.className = "fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-[1000] p-4";
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm transform scale-95 transition-transform duration-200">
+                    <p class="text-gray-800 text-lg mb-6">${message}</p>
+                    <button id="custom-alert-ok-btn" class="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-200 ease-in-out shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+                        OK
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            getEl('custom-alert-ok-btn').onclick = () => {
+                modal.remove();
+            };
+        };
+
+        const createCustomConfirm = (message, onConfirm, onCancel) => {
+            const modal = document.createElement('div');
+            modal.className = "fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-[1000] p-4";
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm transform scale-95 transition-transform duration-200">
+                    <p class="text-gray-800 text-lg mb-6">${message}</p>
+                    <div class="flex justify-end space-x-4">
+                        <button id="custom-confirm-cancel-btn" class="py-2 px-4 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition duration-200 ease-in-out shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+                            Cancel
+                        </button>
+                        <button id="custom-confirm-ok-btn" class="py-2 px-4 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition duration-200 ease-in-out shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75">
+                            Confirm
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            getEl('custom-confirm-ok-btn').onclick = () => {
+                modal.remove();
+                onConfirm();
+            };
+            getEl('custom-confirm-cancel-btn').onclick = () => {
+                modal.remove();
+                onCancel();
+            };
+        };
+
+        // Override default browser alert/confirm
+        window.alert = createCustomAlert;
+        window.confirm = createCustomConfirm;
+
+
+        // --- Modal Management (for saved quotations) ---
+        const toggleModal = (isOpen) => {
+            const modal = getEl('saved-quotations-modal');
+            if (isOpen) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                renderSavedQuotationsModal();
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        };
+
+        const renderSavedQuotationsModal = () => {
+            const list = getEl('saved-quotations-list');
+            list.innerHTML = ''; // Clear existing list
+
+            const saved = loadQuotations(); // Use embedded DB function
+            appState.savedQuotations = saved; // Update state with fresh data from localStorage
+
+            if (saved.length === 0) {
+                list.innerHTML = '<p class="text-gray-600">No quotations saved yet. Create and save some!</p>';
+            } else {
+                saved.forEach(q => {
+                    const listItem = document.createElement('li');
+                    listItem.className = "p-3 bg-gray-50 rounded-lg flex items-center justify-between border border-gray-200";
+                    listItem.innerHTML = `
+                        <div class="flex-grow">
+                            <p class="font-semibold text-gray-800">Quotation #: ${q.quotationNumber}</p>
+                            <p class="text-sm text-gray-700">Client: ${q.clientName}</p>
+                            <p class="text-sm text-gray-600">Total: KSh${(q.total).toFixed(2)}</p>
+                        </div>
+                        <div class="flex space-x-2 ml-4">
+                            <button class="load-quotation-btn p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out" title="Load Quotation" data-id="${q.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm10-6a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-3z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <button class="delete-quotation-btn p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-150 ease-in-out" title="Delete Quotation" data-id="${q.id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 11-2 0v6a1 1 0 112 0V8z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                    list.appendChild(listItem);
+                });
+
+                // Attach event listeners to Load/Delete buttons in the modal
+                list.querySelectorAll('.load-quotation-btn').forEach(button => {
+                    button.onclick = (e) => {
+                        const id = e.currentTarget.dataset.id;
+                        const quotationToLoad = appState.savedQuotations.find(q => q.id === id);
+                        if (quotationToLoad) {
+                            handleLoadSavedQuotation(quotationToLoad);
+                        }
+                    };
+                });
+                list.querySelectorAll('.delete-quotation-btn').forEach(button => {
+                    button.onclick = (e) => {
+                        const id = e.currentTarget.dataset.id;
+                        handleDeleteSavedQuotation(id);
+                    };
+                });
+            }
+        };
+
+        // --- Initial Setup and Event Listeners ---
+        window.onload = () => {
+            // Initialize appState with initial values
+            // These initial values are now the defaults defined in the appState object above.
+            // We just need to ensure the input fields reflect them.
+            getEl('company-name').value = appState.companyName;
+            getEl('company-address').value = appState.companyAddress;
+            getEl('company-email').value = appState.companyEmail;
+            getEl('company-phone').value = appState.companyPhone;
+            getEl('company-logo-preview').src = appState.companyLogoUrl; // Set initial logo
+            getEl('quotation-number').value = appState.quotationNumber;
+            getEl('quotation-date').value = appState.quotationDate;
+            getEl('valid-until-date').value = appState.validUntilDate;
+            getEl('tax-rate').value = appState.taxRate;
+
+
+            // Attach main form input listeners
+            getEl('company-name').onchange = (e) => updateField('companyName', e.target.value);
+            getEl('company-address').onchange = (e) => updateField('companyAddress', e.target.value);
+            getEl('company-email').onchange = (e) => updateField('companyEmail', e.target.value);
+            getEl('company-phone').onchange = (e) => updateField('companyPhone', e.target.value);
+            getEl('company-logo-upload').onchange = handleLogoUpload;
+
+            getEl('client-name').onchange = (e) => updateField('clientName', e.target.value);
+            getEl('client-address').onchange = (e) => updateField('clientAddress', e.target.value);
+            getEl('client-email').onchange = (e) => updateField('clientEmail', e.target.value);
+            getEl('client-phone').onchange = (e) => updateField('clientPhone', e.target.value);
+
+            getEl('quotation-number').onchange = (e) => updateField('quotationNumber', e.target.value);
+            getEl('quotation-date').onchange = (e) => updateField('quotationDate', e.target.value);
+            getEl('valid-until-date').onchange = (e) => updateField('validUntilDate', e.target.value);
+            getEl('tax-rate').onchange = (e) => updateField('taxRate', parseFloat(e.target.value) || 0);
+
+            // Attach button listeners
+            getEl('add-line-item-btn').onclick = addLineItem;
+            getEl('save-quotation-btn').onclick = handleSaveQuotation;
+            getEl('print-quotation-btn').onclick = handlePrintQuotation;
+            getEl('undo-btn').onclick = handleUndo;
+            getEl('redo-btn').onclick = handleRedo;
+            getEl('view-saved-btn').onclick = () => toggleModal(true);
+            getEl('close-modal-btn').onclick = () => toggleModal(false);
+
+            // Load saved quotations and initial render
+            appState.savedQuotations = loadQuotations(); // Use embedded DB function
+            captureState(); // Capture initial state for undo/redo
+            renderApp();
+        };
+    </script>
+</body>
+</html>
