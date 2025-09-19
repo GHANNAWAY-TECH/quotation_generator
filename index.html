@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quotation Generator </title>
+    <title>GTS Quotation Generator </title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -99,7 +99,7 @@
 
     <div id="app-container" class="bg-white rounded-xl shadow-2xl p-6 md:p-8 w-full max-w-6xl transform transition-all duration-300 hover:scale-[1.005] border border-gray-200 overflow-hidden">
         <div class="text-center mb-8 border-b pb-4">
-            <h1 class="text-4xl font-extrabold text-blue-700">QUOTATION GENERATOR</h1>
+            <h1 class="text-4xl font-extrabold text-blue-700">GTS QUOTATION GENERATOR</h1>
             <p class="text-gray-500 text-sm mt-2 italic">Working Offline (Data saved in your browser)</p>
         </div>
 
@@ -109,7 +109,7 @@
             <div class="bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-200">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Your Company Details</h2>
                 <label for="company-logo-upload" class="cursor-pointer mb-4 block">
-                    <img id="company-logo-preview" src="https://i.postimg.cc/rFFJygQw/1.png" alt="Company Logo" class="w-28 h-auto rounded-lg shadow-md mb-2 object-contain">
+                    <img id="company-logo-preview" src="https://i.postimg.cc/hP1r3Ps2/favicon.png" alt="Company Logo" class="w-28 h-auto rounded-lg shadow-md mb-2 object-contain">
                     <input id="company-logo-upload" type="file" accept="image/*" class="hidden">
                     <span class="text-sm text-blue-600 hover:underline">Upload Company Logo</span>
                 </label>
@@ -227,7 +227,7 @@
     <!-- Saved Quotations Modal -->
     <div id="saved-quotations-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md md:max-w-lg lg:max-w-xl max-h-[80vh] overflow-y-auto transform scale-95 transition-transform duration-200">
-            <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">Your Saved Quotations</h2>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">My Saved Quotations</h2>
             <ul id="saved-quotations-list" class="space-y-3">
                 <!-- Saved quotations will be dynamically inserted here -->
             </ul>
@@ -305,11 +305,11 @@
 
         // --- Global State Object ---
         let appState = {
-            companyName: "Electrawave Innovations", // Updated
+            companyName: "Ghannaway Tech Systems", // Updated
             companyAddress: "Ruiru, Nairobi, Kenya", // Updated
-            companyEmail: "info@electrawaveinnovations.com", // Updated
-            companyPhone: "+254 718 900257", // Updated
-            companyLogoUrl: "https://i.postimg.cc/rFFJygQw/1.png", // Default logo URL
+            companyEmail: "ghannawaytechsystem@gmail.com", // Updated
+            companyPhone: "+254 757 041431", // Updated
+            companyLogoUrl: "https://i.postimg.cc/hP1r3Ps2/favicon.png", // Default logo URL
             clientName: "",
             clientAddress: "",
             clientEmail: "",
